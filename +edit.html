@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@100..900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="/src/stylesheets/style.css">
+
+    <script>
+        const RECORD = {
+            TYEP: {
+                EXPENSE: 'expense',
+                REVENUE: 'revenue',
+            }
+        }
+    </script>
+
+    <script src="/src/utils.js"></script>
+    <script>
+        const [selectedRecord, selectedIndex] = (function () {
+            const records = getLocalStorage("records", true)[getQuery('date')];
+            const index = records.findIndex(e => e.id === getQuery('id'));
+            return [records[index], index];
+        })();
+    </script>
+</head>
+
+<body class="bg-gray-50 p-4">
+    <main class="flex flex-col gap-4 max-w-md mx-auto">
+        <form id="form" class="flex flex-col gap-4">
+            <header class="flex flex-row w-full items-center justify-between gap-1 *:leading-none">
+                <div class="flex flex-row items-center justify-center">
+                    <a href="/"
+                        class="font-mono text-4xl w-12 h-12 rounded-full flex items-center justify-center duration-200 hover:bg-purple-100 text-purple-800 leading-none">
+                        &lt;-
+                    </a>
+
+                    <h1 class="font-bold text-2xl text-purple-800">แก้ไขบันทึก</h1>
+                </div>
+            </header>
+
+            <div class="flex flex-row gap-4 *:flex-1 *:border-2 *:rounded-md *:p-2 *:font-bold">
+                <button type="button" id="track-type-revenue" onclick="_fn_type(RECORD.TYEP.REVENUE)"
+                    class="bg-emerald-100 text-emerald-800 border-emerald-100">รายรับ</button>
+                <button type="button" id="track-type-expense" onclick="_fn_type(RECORD.TYEP.EXPENSE)"
+                    class="bg-red-100 text-red-800 border-red-100">รายจ่าย</button>
+            </div>
+            <script>
+                const _type = {};
+                _type["revenue"] = document.getElementById("track-type-revenue");
+                _type["expense"] = document.getElementById("track-type-expense");
+
+                let recordType = selectedRecord.type;
+
+                function _fn_type(t) {
+                    recordType = t;
+                    _type["expense"].classList.add("border-red-100");
+                    _type["expense"].classList.remove("border-red-400");
+                    _type["revenue"].classList.add("border-emerald-100");
+                    _type["revenue"].classList.remove("border-emerald-400");
+
+                    if (t === RECORD.TYEP.EXPENSE) {
+                        _type["expense"].classList.remove("border-red-100");
+                        _type["expense"].classList.add("border-red-400");
+                    }
+                    if (t === RECORD.TYEP.REVENUE) {
+                        _type["revenue"].classList.add("border-emerald-400");
+                        _type["revenue"].classList.remove("border-emerald-100");
+                    }
+                }
+
+                (() => {
+                    if (recordType === RECORD.TYEP.EXPENSE) {
+                        _type["expense"].classList.remove("border-red-100");
+                        _type["expense"].classList.add("border-red-400");
+                    }
+                    if (recordType === RECORD.TYEP.REVENUE) {
+                        _type["revenue"].classList.add("border-emerald-400");
+                        _type["revenue"].classList.remove("border-emerald-100");
+                    }
+                })();
+            </script>
+
+            <section class="flex flex-col gap-4 *:flex *:flex-col *:gap-1">
+                <label for="i-label">
+                    <span class="text-sm px-2">ชื่อรายการ</span>
+                    <input type="text" id="i-label" placeholder="ชื่อรายการ"
+                        class="p-2 rounded-md bg-purple-100 text-purple-800 placeholder:text-purple-300">
+                </label>
+
+                <label for="i-amount">
+                    <span class="text-sm px-2">จำนวนเงิน</span>
+                    <input type="number" id="i-amount" placeholder="จำนวนเงิน"
+                        class="p-2 rounded-md bg-purple-100 text-purple-800 placeholder:text-purple-300">
+                </label>
+            </section>
+
+            <button type="submit"
+                class="flex items-center justify-center bg-purple-200 p-2 rounded-md text-purple-800 font-bold border-2 border-purple-400">
+                แก้ไขรายการ
+            </button>
+        </form>
+    </main>
+    <script>
+        const form = document.getElementById("form");
+        const _i = {};
+        _i["i-label"] = document.getElementById("i-label");
+        _i["i-amount"] = document.getElementById("i-amount");
+
+        _i["i-label"].value = selectedRecord.label;
+        _i["i-amount"].value = selectedRecord.amount;
+
+        form.addEventListener("submit", e => {
+            e.preventDefault();
+
+            const data = {
+                id: selectedRecord.id,
+                type: recordType,
+                amount: _i["i-amount"].value,
+                label: _i["i-label"].value,
+            };
+
+            const selectdate = getQuery('date');
+            const records = getLocalStorage("records", true) ?? {};
+
+            // ? replace data and save to localstorage
+            records[selectdate][selectedIndex] = data;
+            setLocalStorage("records", records, true);
+
+            return redirect('/');
+        });
+    </script>
+
+    <script>
+        function _fn_delete() {
+            const records = getLocalStorage("records", true) ?? {};
+            const selectdate = getQuery('date');
+            const filtered = records[selectdate].filter(e => e.id !== getQuery("id"));
+            records[selectdate] = filtered;
+
+            setLocalStorage("records", records, true);
+            return redirect('/');
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@100..900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="/src/stylesheets/style.css">
+
+    <script src="/src/utils.js"></script>
+    <script>
+        (() => {
+            const records = getLocalStorage("records", true);
+            if (records) return;
+            setLocalStorage("records", [], true);
+        })()
+    </script>
+    <script>
+        const RECORD = {
+            TYEP: {
+                EXPENSE: 'expense',
+                REVENUE: 'revenue',
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-gray-50 p-4">
+    <template id="_t-track-record-item">
+        <div id="_container" class="flex flex-row items-center justify-between border p-1 rounded-md">
+            <input type="hidden" name="_id" id="_id">
+            <header class="flex flex-col *:leading-tight">
+                <p id="_label" class="font-bold"></p>
+                <!-- <span class="text-[12px]">อาหาร</span> -->
+            </header>
+            <span class="font-mono font-bold" id="_amount"></span>
+        </div>
+    </template>
+
+    <template id="_t-track-no-record">
+        <div id="_container" class="text-center p-1 rounded-md bg-purple-100 text-purple-800 font-bold">
+            ยังไม่มีการบันทึกข้อมูลในวันนี้
+        </div>
+    </template>
+
+    <main class="flex flex-col gap-4 max-w-md mx-auto">
+        <header class="flex flex-row w-full items-center justify-between gap-1 *:leading-none">
+            <h1 class="font-bold text-2xl text-purple-800">บันทึกประจำวัน</h1>
+            <input type="date" id="_i-record-select-date" class="text-sm p-2 rounded-md w-max border border-purple-200">
+        </header>
+
+        <div class="flex flex-col gap-2">
+            <p class="font-bold text-purple-800">รายการบันทึก</p>
+            <section id="tracks" class="flex flex-col gap-2"></section>
+        </div>
+
+        <menu class="flex flex-row flex-wrap *:flex-1">
+            <button onclick="_warp_addRecord()"
+                class="bg-purple-200 p-2 rounded-md text-purple-800 font-bold border-2 border-purple-400 text-center">
+                เพิ่มบันทึก
+            </button>
+        </menu>
+
+        <script>
+            const _e__tracks = document.getElementById("tracks");
+            const _targetElements = {}, _i = {};
+            _targetElements["track-container"] = document.getElementById("tracks");
+            _targetElements["track-record-item"] = document.getElementById("_t-track-record-item");
+            _targetElements["track-no-record"] = document.getElementById("_t-track-no-record");
+
+            _i["record-select-date"] = document.getElementById("_i-record-select-date");
+
+            function _template(_t) {
+                return _t.content.cloneNode(true);
+            }
+
+            class RecordManager {
+                constructor(componenets = _targetElements) {
+                    this.componenets = componenets;
+                    this.records = getLocalStorage('records', true);
+
+                    this.selectedDate = (function () {
+                        const date = new Date();
+                        const m = date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1;
+                        const d = date.getDate();
+                        const y = date.getFullYear();
+
+                        return y + '-' + m + '-' + d;
+                    })();
+                    this.render(this.selectedDate);
+                }
+
+                render(selectedDate) {
+                    console.log(selectedDate);
+
+                    this.selectedDate = selectedDate;
+                    this.componenets["track-container"].innerHTML = '';
+
+                    const records = this.records[selectedDate];
+                    console.log("e", records);
+
+                    if (!records) return this.componenets["track-container"].innerHTML = this.componenets["track-no-record"].innerHTML;
+
+                    records.forEach(e => {
+                        const t = _template(this.componenets["track-record-item"]);
+
+                        if (e.type === RECORD.TYEP.EXPENSE)
+                            t.querySelector("#_container").classList.add("border-red-200", "bg-red-100", "text-red-800");
+
+                        if (e.type === RECORD.TYEP.REVENUE)
+                            t.querySelector("#_container").classList.add("border-emerald-200", "bg-emerald-100", "text-emerald-800");
+
+                        t.querySelector("#_id").value = e.id;
+                        t.querySelector("#_label").innerHTML = e.label;
+                        t.querySelector("#_amount").innerHTML = e.type === RECORD.TYEP.EXPENSE ? '- ' + e.amount : e.amount;
+
+                        t.querySelector("#_container").onclick = () => {
+                            redirect('/+edit.html' + '?date=' + selectedDate + '&id=' + e.id);
+                        }
+                        this.componenets["track-container"].appendChild(t);
+                    });
+                }
+            }
+
+            const RCMG = new RecordManager(_targetElements);
+
+            _i["record-select-date"].addEventListener("change", e => {
+                const selectedDate = e.target.value;
+                RCMG.render(selectedDate);
+            });
+
+            function _warp_addRecord() {
+                window.location.href = "/+records.html?date=" + RCMG.selectedDate
+            }
+        </script>
+    </main>
+    <div class="bg-emerald-200"></div>
+</body>
+
+</html>
