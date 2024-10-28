@@ -16,13 +16,6 @@
 
     <script src="/src/utils.js"></script>
     <script>
-        (() => {
-            const records = getLocalStorage("records", true);
-            if (records) return;
-            setLocalStorage("records", [], true);
-        })()
-    </script>
-    <script>
         const RECORD = {
             TYEP: {
                 EXPENSE: 'expense',
@@ -104,8 +97,6 @@
                     this.componenets["track-container"].innerHTML = '';
 
                     const records = this.records[selectedDate];
-                    console.log("e", records);
-
                     if (!records) return this.componenets["track-container"].innerHTML = this.componenets["track-no-record"].innerHTML;
 
                     records.forEach(e => {

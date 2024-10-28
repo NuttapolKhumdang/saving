@@ -108,7 +108,7 @@
             };
 
             const selectdate = getQuery('date');
-            const records = getLocalStorage("records", true) ?? {};
+            const records = getLocalStorage("records", true) ?? [];
 
             // ? insert new records and save to localstorage
             if (!records[selectdate]) records[selectdate] = [data];
